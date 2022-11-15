@@ -1,0 +1,24 @@
+name: 'Team Approvals'
+description: 'Request team specific approvals for pull requests'
+branding:
+  icon: 'check-circle'
+  color: 'green'
+inputs:
+  github-token:
+    default: ${{ github.token }}
+    description: 'The GITHUB_TOKEN secret to approve on behalf'
+    required: true
+  label-requirements:
+    required: false
+    description: 'The newline delimited list of labels and teams/users required for an approval'
+  approve-no-requirements:
+    required: false
+    default: 'false'
+    description: 'When set to true PR without matching label requirements would be approved'
+  skip-assignies:
+    required: false
+    default: 'false'
+    description: 'When set to true PR assignies would not be counted as an approval fulfilment'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
