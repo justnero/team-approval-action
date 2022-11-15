@@ -77,8 +77,8 @@ test("when approve no requirements flag is passed", async () => {
   );
 });
 
-test("when skip assignies flag is passed", async () => {
-  process.env["INPUT_SKIP-ASSIGNIES"] = "true";
+test("when skip assignees flag is passed", async () => {
+  process.env["INPUT_SKIP-ASSIGNEES"] = "true";
   await run();
   expect(mockedApprove).toHaveBeenCalledWith(
     "tok-xyz",

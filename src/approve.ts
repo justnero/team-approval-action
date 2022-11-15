@@ -9,7 +9,7 @@ export async function approve(
   context: Context,
   labelRequirements: Array<{ label: string; owners: string[] }>,
   approveNoRequirements: boolean,
-  skipAssignies: boolean
+  skipAssignees: boolean
 ) {
   const client = github.getOctokit(token);
   const prNumber = context.payload.pull_request?.number;
@@ -87,7 +87,7 @@ export async function approve(
       .filter(
         ({ state, user }) =>
           state === "APPROVED" &&
-          (!skipAssignies ||
+          (!skipAssignees ||
             !pr.assignees?.some(({ login }) => user?.login === login))
       )
       .map((review) => review.user?.login);

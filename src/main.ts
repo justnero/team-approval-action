@@ -5,7 +5,7 @@ import { approve } from "./approve";
 export async function run() {
   try {
     const token = core.getInput("github-token");
-    const skipAssignies = core.getInput("skip-assignies") === "true";
+    const skipAssignees = core.getInput("skip-assignees") === "true";
     const approveNoRequirements =
       core.getInput("approve-no-requirements") === "true";
     if (!token) {
@@ -16,7 +16,7 @@ export async function run() {
       github.context,
       labelRequirements(),
       approveNoRequirements,
-      skipAssignies
+      skipAssignees
     );
   } catch (error) {
     if (error instanceof Error) {

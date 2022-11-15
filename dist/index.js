@@ -9549,7 +9549,7 @@ exports.approve = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
-function approve(token, context, labelRequirements, approveNoRequirements, skipAssignies) {
+function approve(token, context, labelRequirements, approveNoRequirements, skipAssignees) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const client = github.getOctokit(token);
@@ -9599,7 +9599,7 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
                 .filter(({ state, user }) => {
                 var _a;
                 return state === "APPROVED" &&
-                    (!skipAssignies ||
+                    (!skipAssignees ||
                         !((_a = pr.assignees) === null || _a === void 0 ? void 0 : _a.some(({ login }) => (user === null || user === void 0 ? void 0 : user.login) === login)));
             })
                 .map((review) => { var _a; return (_a = review.user) === null || _a === void 0 ? void 0 : _a.login; });
@@ -9755,12 +9755,12 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput("github-token");
-            const skipAssignies = core.getInput("skip-assignies") === "true";
+            const skipAssignees = core.getInput("skip-assignees") === "true";
             const approveNoRequirements = core.getInput("approve-no-requirements") === "true";
             if (!token) {
                 throw new Error("This action requies `github-token` to be set");
             }
-            yield (0, approve_1.approve)(token, github.context, labelRequirements(), approveNoRequirements, skipAssignies);
+            yield (0, approve_1.approve)(token, github.context, labelRequirements(), approveNoRequirements, skipAssignees);
         }
         catch (error) {
             if (error instanceof Error) {

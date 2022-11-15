@@ -27,7 +27,7 @@ jobs:
             backend=justnero,testOrg/backend
             frontend=testOrg/frontend
           approve-no-requirements: false
-          skip-assignies: false
+          skip-assignees: false
 ```
 
 ## Why?

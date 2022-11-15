@@ -15,10 +15,10 @@ inputs:
     required: false
     default: 'false'
     description: 'When set to true PR without matching label requirements would be approved'
-  skip-assignies:
+  skip-assignees:
     required: false
     default: 'false'
-    description: 'When set to true PR assignies would not be counted as an approval fulfilment'
+    description: 'When set to true PR assignees would not be counted as an approval fulfilment'
 runs:
   using: 'node16'
   main: 'dist/index.js'
