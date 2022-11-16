@@ -9,7 +9,8 @@ export async function approve(
   context: Context,
   labelRequirements: Array<{ label: string; owners: string[] }>,
   approveNoRequirements: boolean,
-  skipAssignees: boolean
+  skipAssignees: boolean,
+  minimumApprovalsRequired: number
 ) {
   const client = github.getOctokit(token);
   const prNumber = context.payload.pull_request?.number;
@@ -80,18 +81,24 @@ export async function approve(
       core.debug("Loaded teams");
     }
 
-    const prHead = pr.head.sha;
-    core.info(`Commit SHA is ${prHead}`);
-
     const approvals = reviews
       .filter(
         ({ state, user }) =>
           state === "APPROVED" &&
           (!skipAssignees ||
-            !pr.assignees?.some(({ login }) => user?.login === login))
+            !pr.assignees?.some(({ login }) => user?.login === login)) &&
+          user?.login !== login
       )
       .map((review) => review.user?.login);
 
+    const approvalsMinimumSatifsied =
+      minimumApprovalsRequired <= 0 ||
+      approvals.length >= minimumApprovalsRequired;
+    core.info(
+      approvalsMinimumSatifsied
+        ? `✅ Enough approvals found: ${approvals.length} of ${minimumApprovalsRequired} required`
+        : `❌ Not enoguh approvals found: ${approvals.length} of ${minimumApprovalsRequired} required`
+    );
     let labelsSatisfied = true;
     core.startGroup("Evaluating label requirements");
     activeRequirements.forEach(({ label, owners }) => {
@@ -118,7 +125,7 @@ export async function approve(
     const existingApproval = reviews.find(
       ({ user, state }) => user?.login === login && state === "APPROVED"
     );
-    if (existingApproval && !labelsSatisfied) {
+    if (existingApproval && !(labelsSatisfied && approvalsMinimumSatifsied)) {
       await client.rest.pulls.dismissReview({
         owner: context.repo.owner,
         repo: context.repo.repo,
@@ -132,7 +139,8 @@ export async function approve(
     if (
       (approveNoRequirements || activeRequirements.length > 0) &&
       !existingApproval &&
-      labelsSatisfied
+      labelsSatisfied &&
+      approvalsMinimumSatifsied
     ) {
       await client.rest.pulls.createReview({
         owner: context.repo.owner,

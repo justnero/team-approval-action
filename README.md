@@ -12,7 +12,30 @@ Create a workflow file (e.g. `.github/workflows/team-approval.yml`) that contain
 
 ```yaml
 name: Auto approve
-on: pull_request_target
+  pull_request:
+    types:
+      - assigned
+      - unassigned
+      - labeled
+      - unlabeled
+      - opened
+      - edited
+      - closed
+      - reopened
+      - synchronize
+      - converted_to_draft
+      - ready_for_review
+      - locked
+      - unlocked
+      - review_requested
+      - review_request_removed
+      - auto_merge_enabled
+      - auto_merge_disabled
+  pull_request_review:
+    types:
+      - submitted
+      - edited
+      - dismissed
 
 jobs:
   team-approval:
@@ -28,6 +51,7 @@ jobs:
             frontend=testOrg/frontend
           approve-no-requirements: false
           skip-assignees: false
+          minimum-approvals-required: 3
 ```
 
 ## Why?

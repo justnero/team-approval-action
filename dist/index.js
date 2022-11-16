@@ -9549,7 +9549,7 @@ exports.approve = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
-function approve(token, context, labelRequirements, approveNoRequirements, skipAssignees) {
+function approve(token, context, labelRequirements, approveNoRequirements, skipAssignees, minimumApprovalsRequired) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const client = github.getOctokit(token);
@@ -9593,16 +9593,20 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
                 }))))).reduce((teams, { name, members }) => (Object.assign(Object.assign({}, teams), { [name]: members.map(({ login }) => login) })), {});
                 core.debug("Loaded teams");
             }
-            const prHead = pr.head.sha;
-            core.info(`Commit SHA is ${prHead}`);
             const approvals = reviews
                 .filter(({ state, user }) => {
                 var _a;
                 return state === "APPROVED" &&
                     (!skipAssignees ||
-                        !((_a = pr.assignees) === null || _a === void 0 ? void 0 : _a.some(({ login }) => (user === null || user === void 0 ? void 0 : user.login) === login)));
+                        !((_a = pr.assignees) === null || _a === void 0 ? void 0 : _a.some(({ login }) => (user === null || user === void 0 ? void 0 : user.login) === login))) &&
+                    (user === null || user === void 0 ? void 0 : user.login) !== login;
             })
                 .map((review) => { var _a; return (_a = review.user) === null || _a === void 0 ? void 0 : _a.login; });
+            const approvalsMinimumSatifsied = minimumApprovalsRequired <= 0 ||
+                approvals.length >= minimumApprovalsRequired;
+            core.info(approvalsMinimumSatifsied
+                ? `✅ Enough approvals found: ${approvals.length} of ${minimumApprovalsRequired} required`
+                : `❌ Not enoguh approvals found: ${approvals.length} of ${minimumApprovalsRequired} required`);
             let labelsSatisfied = true;
             core.startGroup("Evaluating label requirements");
             activeRequirements.forEach(({ label, owners }) => {
@@ -9624,7 +9628,7 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
                 ? "✅ All label requirements are satisfied"
                 : "❌ At least one label requirement is not satisfied");
             const existingApproval = reviews.find(({ user, state }) => (user === null || user === void 0 ? void 0 : user.login) === login && state === "APPROVED");
-            if (existingApproval && !labelsSatisfied) {
+            if (existingApproval && !(labelsSatisfied && approvalsMinimumSatifsied)) {
                 yield client.rest.pulls.dismissReview({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -9637,7 +9641,8 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
             }
             if ((approveNoRequirements || activeRequirements.length > 0) &&
                 !existingApproval &&
-                labelsSatisfied) {
+                labelsSatisfied &&
+                approvalsMinimumSatifsied) {
                 yield client.rest.pulls.createReview({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -9757,10 +9762,11 @@ function run() {
             const token = core.getInput("github-token");
             const skipAssignees = core.getInput("skip-assignees") === "true";
             const approveNoRequirements = core.getInput("approve-no-requirements") === "true";
+            const minimumApprovalsRequired = Math.max(0, parseIntInput(core.getInput("minimum-approvals-required"), 0));
             if (!token) {
                 throw new Error("This action requies `github-token` to be set");
             }
-            yield (0, approve_1.approve)(token, github.context, labelRequirements(), approveNoRequirements, skipAssignees);
+            yield (0, approve_1.approve)(token, github.context, labelRequirements(), approveNoRequirements, skipAssignees, minimumApprovalsRequired);
         }
         catch (error) {
             if (error instanceof Error) {
@@ -9785,6 +9791,10 @@ function labelRequirements() {
         const [label, owners] = line.split("=");
         return { label, owners: owners.split(",") };
     });
+}
+function parseIntInput(value, def) {
+    const parsed = Number.parseInt(value);
+    return isNaN(parsed) ? def : parsed;
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();

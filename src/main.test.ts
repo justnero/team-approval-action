@@ -44,7 +44,8 @@ test("when a single label requirement is passed", async () => {
     expect.anything(),
     [{ label: "label1", owners: ["user1", "org1/team1"] }],
     false,
-    false
+    false,
+    0
   );
 });
 
@@ -61,7 +62,8 @@ test("when multiple label requirements are passed", async () => {
       { label: "label2", owners: ["user2", "org2/team2"] },
     ],
     false,
-    false
+    false,
+    0
   );
 });
 
@@ -73,7 +75,8 @@ test("when approve no requirements flag is passed", async () => {
     expect.anything(),
     expect.anything(),
     true,
-    false
+    false,
+    0
   );
 });
 
@@ -85,7 +88,47 @@ test("when skip assignees flag is passed", async () => {
     expect.anything(),
     expect.anything(),
     false,
-    true
+    true,
+    0
+  );
+});
+
+test("when minimum approvals required is passed", async () => {
+  process.env["INPUT_MINIMUM-APPROVALS-REQUIRED"] = "101";
+  await run();
+  expect(mockedApprove).toHaveBeenCalledWith(
+    "tok-xyz",
+    expect.anything(),
+    expect.anything(),
+    false,
+    false,
+    101
+  );
+});
+
+test("when negative minimum approvals required is passed", async () => {
+  process.env["INPUT_MINIMUM-APPROVALS-REQUIRED"] = "-101";
+  await run();
+  expect(mockedApprove).toHaveBeenCalledWith(
+    "tok-xyz",
+    expect.anything(),
+    expect.anything(),
+    false,
+    false,
+    0
+  );
+});
+
+test("when non-integer approvals required is passed", async () => {
+  process.env["INPUT_MINIMUM-APPROVALS-REQUIRED"] = "foo";
+  await run();
+  expect(mockedApprove).toHaveBeenCalledWith(
+    "tok-xyz",
+    expect.anything(),
+    expect.anything(),
+    false,
+    false,
+    0
   );
 });
 

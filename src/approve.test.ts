@@ -35,8 +35,7 @@ const apiMocks = {
       status ?? 200,
       body ?? {
         labels: [],
-        assignies: [],
-        head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+        assignees: [],
       }
     ),
   getReviews: (status?: number, body?: any) =>
@@ -66,7 +65,7 @@ test("a PR is left untouched with no requirements", async () => {
   apiMocks.getReviews();
   const createReview = apiMocks.createReview();
 
-  await approve("gh-foo", ghContext(), [], false, false);
+  await approve("gh-foo", ghContext(), [], false, false, 0);
 
   expect(createReview.isDone()).toBe(false);
 });
@@ -77,7 +76,7 @@ test("a PR is successfully approved with no requirements", async () => {
   apiMocks.getReviews();
   const createReview = apiMocks.createReview();
 
-  await approve("gh-foo", ghContext(), [], true, false);
+  await approve("gh-foo", ghContext(), [], true, false, 0);
 
   expect(createReview.isDone()).toBe(true);
 });
@@ -86,8 +85,7 @@ test("a PR is successfully approved", async () => {
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 201, state: "APPROVED", user: { login: "justnero" } },
@@ -99,7 +97,8 @@ test("a PR is successfully approved", async () => {
     ghContext(),
     [{ label: "foo", owners: ["justnero"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(true);
@@ -109,8 +108,7 @@ test("a PR approval is successfully dismissed", async () => {
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 202, state: "APPROVED", user: { login: "justnero-bot" } },
@@ -122,7 +120,8 @@ test("a PR approval is successfully dismissed", async () => {
     ghContext(),
     [{ label: "foo", owners: ["justnero"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(dismissReview.isDone()).toBe(true);
@@ -132,8 +131,7 @@ test("a PR is not approved when requirement is not satisfied", async () => {
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 200, state: "APPROVED", user: { login: "justnero-alternative" } },
@@ -146,7 +144,8 @@ test("a PR is not approved when requirement is not satisfied", async () => {
     ghContext(),
     [{ label: "foo", owners: ["justnero"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(false);
@@ -157,8 +156,7 @@ test("a PR is successfully approved with team requirement", async () => {
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 201, state: "APPROVED", user: { login: "justnero" } },
@@ -171,7 +169,8 @@ test("a PR is successfully approved with team requirement", async () => {
     ghContext(),
     [{ label: "foo", owners: ["org/team"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(true);
@@ -181,8 +180,7 @@ test("a PR approval is successfully dismissed with team requirement", async () =
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 202, state: "APPROVED", user: { login: "justnero-bot" } },
@@ -195,7 +193,8 @@ test("a PR approval is successfully dismissed with team requirement", async () =
     ghContext(),
     [{ label: "foo", owners: ["org/team"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(dismissReview.isDone()).toBe(true);
@@ -205,8 +204,7 @@ test("a PR is not approved when requirement is not satisfied with team requireme
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 200, state: "APPROVED", user: { login: "justnero-alternative" } },
@@ -220,7 +218,8 @@ test("a PR is not approved when requirement is not satisfied with team requireme
     ghContext(),
     [{ label: "foo", owners: ["org/team"] }],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(false);
@@ -231,8 +230,7 @@ test("a PR is successfully approved with multiple requirements", async () => {
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }, { name: "bar" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 200, state: "APPROVED", user: { login: "justnero-backend" } },
@@ -254,7 +252,8 @@ test("a PR is successfully approved with multiple requirements", async () => {
       { label: "bar", owners: ["org/frontend"] },
     ],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(true);
@@ -264,8 +263,7 @@ test("a PR is successfully approved with multiple requirements and overlapping t
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }, { name: "bar" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 201, state: "APPROVED", user: { login: "justnero" } },
@@ -288,7 +286,8 @@ test("a PR is successfully approved with multiple requirements and overlapping t
       { label: "bar", owners: ["org/frontend"] },
     ],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(true);
@@ -298,8 +297,7 @@ test("a PR approval is successfully dismissed with multiple requirements", async
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }, { name: "bar" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 201, state: "APPROVED", user: { login: "justnero-backend" } },
@@ -321,7 +319,8 @@ test("a PR approval is successfully dismissed with multiple requirements", async
       { label: "bar", owners: ["org/frontend"] },
     ],
     false,
-    false
+    false,
+    0
   );
 
   expect(dismissReview.isDone()).toBe(true);
@@ -331,8 +330,7 @@ test("a PR is not approved when requirement is not satisfied with multiple requi
   apiMocks.getUser();
   apiMocks.getPull(200, {
     labels: [{ name: "foo" }, { name: "bar" }],
-    assignies: [],
-    head: { sha: "675fe4aa72b4e423df2ff0fb0096a93046f83257" },
+    assignees: [],
   });
   apiMocks.getReviews(200, [
     { id: 201, state: "APPROVED", user: { login: "justnero-frontend" } },
@@ -355,11 +353,155 @@ test("a PR is not approved when requirement is not satisfied with multiple requi
       { label: "bar", owners: ["org/frontend"] },
     ],
     false,
-    false
+    false,
+    0
   );
 
   expect(createReview.isDone()).toBe(false);
   expect(dismissReview.isDone()).toBe(false);
+});
+
+test("a PR is not approved with only assignee approval", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [{ login: "justnero" }],
+  });
+  apiMocks.getReviews(200, [
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+  ]);
+  const createReview = apiMocks.createReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    0
+  );
+
+  expect(createReview.isDone()).toBe(false);
+});
+
+test("a PR approval is dismissed with only assignee approval", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [{ login: "justnero" }],
+  });
+  apiMocks.getReviews(200, [
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+    { id: 202, state: "APPROVED", user: { login: "justnero-bot" } },
+  ]);
+  const dismissReview = apiMocks.dismissReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    0
+  );
+
+  expect(dismissReview.isDone()).toBe(true);
+});
+
+test("a PR is not approved when minimum approvals is not satisfied", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [],
+  });
+  apiMocks.getReviews(200, [
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+  ]);
+  const createReview = apiMocks.createReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    2
+  );
+
+  expect(createReview.isDone()).toBe(false);
+});
+
+test("a PR is successfully approved when minimum approvals is satisfied", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [],
+  });
+  apiMocks.getReviews(200, [
+    { id: 200, state: "APPROVED", user: { login: "justnero-backend" } },
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+  ]);
+  const createReview = apiMocks.createReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    2
+  );
+
+  expect(createReview.isDone()).toBe(true);
+});
+
+test("a PR is not approved when minimum approvals is not satisfied due to assignee approval", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [{ login: "justnero-backend" }],
+  });
+  apiMocks.getReviews(200, [
+    { id: 200, state: "APPROVED", user: { login: "justnero-backend" } },
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+  ]);
+  const createReview = apiMocks.createReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    2
+  );
+
+  expect(createReview.isDone()).toBe(false);
+});
+
+test("a PR approval is dismissed when minimum approvals is not satisfied due to assignee approval", async () => {
+  apiMocks.getUser();
+  apiMocks.getPull(200, {
+    labels: [{ name: "foo" }],
+    assignees: [{ login: "justnero-backend" }],
+  });
+  apiMocks.getReviews(200, [
+    { id: 200, state: "APPROVED", user: { login: "justnero-backend" } },
+    { id: 201, state: "APPROVED", user: { login: "justnero" } },
+    { id: 202, state: "APPROVED", user: { login: "justnero-bot" } },
+  ]);
+  const dismissReview = apiMocks.dismissReview();
+
+  await approve(
+    "gh-foo",
+    ghContext(),
+    [{ label: "foo", owners: ["justnero"] }],
+    false,
+    true,
+    2
+  );
+
+  expect(dismissReview.isDone()).toBe(true);
 });
 
 function ghContext(): Context {

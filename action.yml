@@ -19,6 +19,9 @@ inputs:
     required: false
     default: 'false'
     description: 'When set to true PR assignees would not be counted as an approval fulfilment'
+  minimum-approvals-required:
+    required: false
+    description: 'When set as a number `> 0` requires at least a specified number of approvals'
 runs:
   using: 'node16'
   main: 'dist/index.js'
