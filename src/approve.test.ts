@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import { Context } from "@actions/github/lib/context";
-import { create } from "domain";
 import nock from "nock";
 import { approve } from "./approve";
 
@@ -38,19 +37,32 @@ const apiMocks = {
         assignees: [],
       }
     ),
-  getReviews: (status?: number, body?: any) =>
+  getReviews: (status?: number, body?: any) => {
+    // Emulate data on the second page for pagination
     apiNock
-      .get("/repos/justnero/test/pulls/101/reviews")
-      .reply(status ?? 200, body ?? []),
+      .get("/repos/justnero/test/pulls/101/reviews?per_page=100")
+      .reply(status ?? 200, [], {
+        link: '<https://api.github.com/repos/justnero/test/pulls/101/reviews?per_page=100&page=2>; rel="next", <https://api.github.com/repos/justnero/test/pulls/101/reviews?per_page=100&page=2>; rel="last"',
+      });
+    apiNock
+      .get("/repos/justnero/test/pulls/101/reviews?per_page=100&page=2")
+      .reply(status ?? 200, body ?? []);
+  },
   getTeamMembers: (
     org?: string,
     teamSlug?: string,
     status?: number,
     body?: any
-  ) =>
-    apiNock
-      .get(`/orgs/${org ?? "org"}/teams/${teamSlug ?? "team"}/members`)
-      .reply(status ?? 200, body ?? []),
+  ) => {
+    // Emulate data on the second page for pagination
+    const path = `/orgs/${org ?? "org"}/teams/${
+      teamSlug ?? "team"
+    }/members?per_page=100`;
+    apiNock.get(path).reply(status ?? 200, [], {
+      link: `<https://api.github.com${path}&page=2>; rel="next", <https://api.github.com${path}&page=2>; rel="last"`,
+    });
+    apiNock.get(`${path}&page=2`).reply(status ?? 200, body ?? []);
+  },
   createReview: () =>
     apiNock.post("/repos/justnero/test/pulls/101/reviews").reply(200, {}),
   dismissReview: () =>

@@ -9560,10 +9560,15 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
         try {
             const { owner, repo } = context.repo;
             core.info(`Fetching user, pull request information, and existing reviews`);
-            const [login, { data: pr }, { data: reviews }] = yield Promise.all([
+            const [login, { data: pr }, reviews] = yield Promise.all([
                 getLoginForToken(client),
                 client.rest.pulls.get({ owner, repo, pull_number: prNumber }),
-                client.rest.pulls.listReviews({ owner, repo, pull_number: prNumber }),
+                client.paginate(client.rest.pulls.listReviews, {
+                    owner,
+                    repo,
+                    pull_number: prNumber,
+                    per_page: 100,
+                }),
             ]);
             core.info(`Current user is ${login}`);
             const activeRequirements = labelRequirements.filter(({ label }) => pr.labels.some(({ name }) => name === label));
@@ -9587,7 +9592,9 @@ function approve(token, context, labelRequirements, approveNoRequirements, skipA
             let teams = {};
             if (teamsToCollect.length > 0) {
                 core.debug(`Loading ${teamsToCollect.length} teams`);
-                teams = (yield Promise.all(teamsToCollect.map((team) => client.rest.teams.listMembersInOrg(team).then(({ data }) => ({
+                teams = (yield Promise.all(teamsToCollect.map((team) => client
+                    .paginate(client.rest.teams.listMembersInOrg, Object.assign(Object.assign({}, team), { per_page: 100 }))
+                    .then((data) => ({
                     name: `${team.org}/${team.team_slug}`,
                     members: data,
                 }))))).reduce((teams, { name, members }) => (Object.assign(Object.assign({}, teams), { [name]: members.map(({ login }) => login) })), {});

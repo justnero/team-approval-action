@@ -22,10 +22,15 @@ export async function approve(
     const { owner, repo } = context.repo;
 
     core.info(`Fetching user, pull request information, and existing reviews`);
-    const [login, { data: pr }, { data: reviews }] = await Promise.all([
+    const [login, { data: pr }, reviews] = await Promise.all([
       getLoginForToken(client),
       client.rest.pulls.get({ owner, repo, pull_number: prNumber }),
-      client.rest.pulls.listReviews({ owner, repo, pull_number: prNumber }),
+      client.paginate(client.rest.pulls.listReviews, {
+        owner,
+        repo,
+        pull_number: prNumber,
+        per_page: 100,
+      }),
     ]);
 
     core.info(`Current user is ${login}`);
@@ -65,10 +70,15 @@ export async function approve(
       teams = (
         await Promise.all(
           teamsToCollect.map((team) =>
-            client.rest.teams.listMembersInOrg(team).then(({ data }) => ({
-              name: `${team.org}/${team.team_slug}`,
-              members: data,
-            }))
+            client
+              .paginate(client.rest.teams.listMembersInOrg, {
+                ...team,
+                per_page: 100,
+              })
+              .then((data) => ({
+                name: `${team.org}/${team.team_slug}`,
+                members: data,
+              }))
           )
         )
       ).reduce(
